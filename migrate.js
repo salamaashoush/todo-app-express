@@ -1,36 +1,27 @@
 import { db } from "./db.js";
 
 export async function setupTables() {
-  db.serialize(() => {
-    // create it if it doesn't exist
-    db.run(
-      "CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, text TEXT)"
-    );
-  });
+  // using better-sqlite3
+  db.prepare(
+    "CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, text TEXT)"
+  ).run();
 }
 
 async function seedData() {
-  // check if there are already todos
-  const rows = await new Promise((resolve, reject) => {
-    db.all("SELECT COUNT(*) as count FROM todos", (err, rows) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(rows);
-    });
-  });
+  // using better-sqlite3
 
-  if (rows[0].count > 0) {
-    console.log("Todos already seeded");
+  // check if there are already todos
+  const rows = db.prepare("SELECT COUNT(*) as count FROM todos").get();
+  if (rows.count > 0) {
+    console.log("Todos already exist, skipping seed data");
     return;
   }
+  // seed data
   const stmt = db.prepare("INSERT INTO todos (text) VALUES (?)");
-  for (let i = 0; i < 10; i++) {
-    stmt.run(`Todo ${i}`);
-    console.log(`Inserted Todo ${i}`);
-  }
-  stmt.finalize();
+  stmt.run("Buy groceries");
+  stmt.run("Walk the dog");
+  stmt.run("Wash the car");
+  console.log("Seed data complete");
 }
 
 setupTables()
