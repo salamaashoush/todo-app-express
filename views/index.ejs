@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <title>Todo app</title>
+  </head>
+  <body>
+    <h1>Todo app</h1>
+    <input type="text" id="todo" />
+    <button id="add">Add</button>
+    <ul>
+      <% todos.forEach(function(todo) { %>
+      <li>
+        <span> <%= todo.text %> </span>
+        <button class="delete" data-id="<%= todo.id %>">Delete</button>
+        <button class="update" data-id="<%= todo.id %>">Update</button>
+      </li>
+      <% }); %>
+    </ul>
+  </body>
+
+  <script>
+    var deleteButtons = document.querySelectorAll(".delete");
+    deleteButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        var id = button.getAttribute("data-id");
+        fetch("/todos/" + id, {
+          method: "DELETE",
+        }).then(function () {
+          window.location.reload();
+        });
+      });
+    });
+
+    var updateButtons = document.querySelectorAll(".update");
+    updateButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        var id = button.getAttribute("data-id");
+        var text = prompt("Enter new text");
+        fetch("/todos/" + id, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: text }),
+        }).then(function () {
+          window.location.reload();
+        });
+      });
+    });
+
+    document.getElementById("add").addEventListener("click", function () {
+      var text = document.getElementById("todo").value;
+      fetch("/todos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: text }),
+      }).then(function () {
+        window.location.reload();
+      });
+    });
+  </script>
+</html>
